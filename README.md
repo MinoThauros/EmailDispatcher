@@ -156,6 +156,18 @@ npm run test:db
 - `send_unknown` is resolved by a person or a late receipt; there is no automatic reconciliation against the provider's sent items.
 - No bounce or complaint processing yet.
 
+## Next step: one campaign across several mailboxes
+
+Many mailboxes already send in parallel, each with its own pacing, warmup and reputation state. What's missing is **inbox rotation**: today a campaign has exactly one sender, and a sender has exactly one active mailbox, so spreading one campaign across several mailboxes means splitting it into one campaign per mailbox.
+
+The plan:
+
+1. **Pace per mailbox, not per sender.** Two `senders` rows can currently connect the same Gmail address; the 24h cap is shared (it follows the mailbox), but the minimum interval is per sender, so that mailbox could send twice as often as intended. Key the interval on the connected mailbox, or reject a second active connection of the same address.
+2. **A `campaign_senders` pool.** A table listing the mailboxes a campaign may send from, with the campaign's `sender_id` as the default single-mailbox pool.
+3. **Pick a mailbox at claim time.** `dispatcher_claim_next_send_token` chooses the eligible mailbox in the pool that is ready soonest, instead of the campaign's single sender. Scope and sender locks, warmup, caps, `SKIP LOCKED` and receipts stay as they are, since they already work per mailbox and per scope.
+4. **Keep reporting whole.** `campaign_send_state` stays one row per campaign, with a per-mailbox breakdown alongside it; a paused or disconnected mailbox drops out of the pool without pausing the campaign while others can still send.
+5. **Tests.** Rotation spreads sends across the pool, a capped mailbox is skipped while others continue, a one-mailbox pool behaves exactly like today, and two workers never pick the same mailbox inside its interval.
+
 ## License
 
 [MIT](LICENSE)
