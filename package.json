@@ -1,0 +1,43 @@
+{
+  "name": "pg-email-dispatcher",
+  "version": "0.1.0",
+  "description": "A Postgres-owned email send pipeline: database-issued send tokens, sender warmup and domain protection, and unknown-beats-duplicate delivery.",
+  "license": "MIT",
+  "author": "Herimino Rakotondrafara",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MinoThauros/EmailDispatcher.git"
+  },
+  "keywords": [
+    "email",
+    "postgres",
+    "supabase",
+    "gmail",
+    "queue",
+    "idempotency",
+    "warmup"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "dist/src/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "dev": "nodemon",
+    "start": "node dist/src/index.js",
+    "test": "node --import tsx --test test/*.test.ts",
+    "test:db": "supabase test db",
+    "db:start": "supabase start -x studio,imgproxy,mailpit,logflare,vector,supavisor,postgres-meta,edge-runtime,realtime,storage-api",
+    "db:reset": "supabase db reset"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.0",
+    "nodemon": "^3.1.10",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,85 @@
+-- Shared fixtures for the pgTAP suites. Included with \ir; each suite runs in
+-- its own transaction, so the TRUNCATE and everything created here roll back.
+
+CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
+
+TRUNCATE
+  public.send_attempts,
+  public.send_tokens,
+  public.scope_deferral_rollups,
+  public.sender_reputation_scope_audit,
+  public.sender_reputation_scopes,
+  public.campaign_contacts,
+  public.campaigns,
+  public.sender_credentials,
+  public.senders,
+  public.contacts,
+  public.suppressions,
+  public.unsubscribe_tokens
+CASCADE;
+
+-- A sender with an active Google credential stored in Vault.
+CREATE FUNCTION pg_temp.new_sender(p_email text)
+RETURNS uuid
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_id uuid;
+BEGIN
+  INSERT INTO public.senders (email, display_name)
+  VALUES (p_email, 'Test Sender')
+  RETURNING id INTO v_id;
+
+  PERFORM public.dispatcher_upsert_sender_credentials(
+    v_id, 'google', p_email, 'test-access-token', 'test-refresh-token', now() + interval '1 hour'
+  );
+
+  RETURN v_id;
+END;
+$$;
+
+-- A draft campaign with p_recipients members named <p_prefix><n>@example.com.
+CREATE FUNCTION pg_temp.new_campaign(p_sender_id uuid, p_recipients integer, p_prefix text DEFAULT 'r')
+RETURNS uuid
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_campaign_id uuid;
+BEGIN
+  INSERT INTO public.campaigns (sender_id, name, subject, body_html)
+  VALUES (p_sender_id, 'Test campaign', 'Hello', '<p>Hello</p>')
+  RETURNING id INTO v_campaign_id;
+
+  INSERT INTO public.contacts (email, first_name)
+  SELECT p_prefix || n || '@example.com', 'Recipient ' || n
+  FROM generate_series(1, p_recipients) AS n
+  ON CONFLICT (normalized_email) DO NOTHING;
+
+  INSERT INTO public.campaign_contacts (campaign_id, contact_id)
+  SELECT v_campaign_id, ct.id
+  FROM public.contacts ct
+  WHERE ct.normalized_email IN (
+    SELECT p_prefix || n || '@example.com' FROM generate_series(1, p_recipients) AS n
+  );
+
+  RETURN v_campaign_id;
+END;
+$$;
+
+-- One claim at a point in time, with the defaults the worker uses.
+CREATE FUNCTION pg_temp.claim(p_now timestamptz)
+RETURNS TABLE (
+  state text,
+  next_eligible_at timestamptz,
+  campaign_contact_id uuid,
+  lease_token uuid,
+  attempt_no integer,
+  unsubscribe_token uuid
+)
+LANGUAGE sql
+AS $$
+  SELECT c.state, c.next_eligible_at, c.campaign_contact_id, c.lease_token, c.attempt_no, c.unsubscribe_token
+  FROM public.dispatcher_claim_next_send_token(
+    '00000000-0000-0000-0000-00000000000a'::uuid, 300, 180, p_now, 50
+  ) c;
+$$;
