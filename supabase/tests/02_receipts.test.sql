@@ -4,7 +4,7 @@ BEGIN;
 \ir _helpers.psql
 SELECT plan(23);
 
-SELECT pg_temp.new_sender('ops@acme.test') AS sender \gset
+SELECT pg_temp.new_sender('maya@acme.test') AS sender \gset
 SELECT pg_temp.new_campaign(:'sender', 5) AS campaign \gset
 SELECT public.dispatcher_campaign_go_live(:'campaign', now());
 

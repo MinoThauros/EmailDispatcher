@@ -21,7 +21,7 @@ test("headers are single-line and non-ASCII is RFC 2047 encoded", () => {
 
   assert.doesNotMatch(headerBlock, /^Bcc:/m, "a CRLF in the subject cannot inject a header");
   assert.match(headerBlock, /^Subject: =\?UTF-8\?B\?/m);
-  assert.match(headerBlock, /^From: =\?UTF-8\?B\?.+\?= <ops@acme\.test>$/m);
+  assert.match(headerBlock, /^From: =\?UTF-8\?B\?.+\?= <maya@acme\.test>$/m);
   assert.match(headerBlock, /^List-Unsubscribe: <https:\/\/example\.test\/u\/1>$/m);
   assert.match(headerBlock, /^List-Unsubscribe-Post: List-Unsubscribe=One-Click$/m);
   assert.equal(encodeRfc2047("plain"), "plain");

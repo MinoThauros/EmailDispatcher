@@ -1,7 +1,7 @@
 {
   "name": "pg-email-dispatcher",
   "version": "0.1.0",
-  "description": "A Postgres-owned email send pipeline: database-issued send tokens, sender warmup and domain protection, and unknown-beats-duplicate delivery.",
+  "description": "Recruiter outreach from recruiters' own Gmail mailboxes, run by Postgres: database-issued send tokens, mailbox warmup, shared company-domain protection, and unknown-beats-duplicate delivery.",
   "license": "MIT",
   "author": "Herimino Rakotondrafara",
   "repository": {
@@ -9,6 +9,8 @@
     "url": "https://github.com/MinoThauros/EmailDispatcher.git"
   },
   "keywords": [
+    "recruiting",
+    "recruiter-outreach",
     "email",
     "postgres",
     "supabase",

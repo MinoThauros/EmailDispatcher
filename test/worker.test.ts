@@ -33,7 +33,7 @@ function issuedRow(n: number) {
     body_html: "<p>x</p>",
     body_text: null,
     from_name: null,
-    from_email: "ops@acme.test",
+    from_email: "maya@acme.test",
     reply_to_email: null,
     unsubscribe_token: null,
   };

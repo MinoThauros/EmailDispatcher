@@ -376,8 +376,9 @@ DECLARE
 BEGIN
   PERFORM public.dispatcher_require_service_role();
 
-  -- Candidates are interleaved across scopes and senders (rank 1 of every
-  -- scope first, then rank 2, ...) so one busy sender cannot starve others.
+  -- Candidates are interleaved across scopes and recruiters (rank 1 of every
+  -- scope first, then rank 2, ...) so one busy recruiter cannot starve
+  -- their teammates.
   FOR v_candidate IN
     WITH due AS (
       SELECT

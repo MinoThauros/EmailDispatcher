@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Recruiter Outreach Dispatcher</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #161a23;
+    --panel-2: #1c2230;
+    --border: #2a3142;
+    --text: #e7ecf3;
+    --muted: #98a1b3;
+    --dim: #6b7589;
+    --accent: #7c5cff;
+    --accent-2: #4cc9f0;
+    --ok: #3ddc97;
+    --warn: #f2c94c;
+    --danger: #ff6b6b;
+    --purple: #c084fc;
+    --code: #0e1219;
+    --mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--text); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
+    line-height: 1.55; margin: 0; padding: 0 0 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+
+  /* Hero */
+  header.hero {
+    border-bottom: 1px solid var(--border);
+    background:
+      radial-gradient(1200px 400px at 70% -10%, rgba(124,92,255,.18), transparent 60%),
+      radial-gradient(800px 300px at 10% 0%, rgba(76,201,240,.10), transparent 60%);
+    padding: 72px 0 36px;
+  }
+  h1 { font-size: 42px; letter-spacing: -.02em; margin: 0 0 8px; }
+  .lede { font-size: 17px; color: var(--muted); max-width: 760px; margin: 6px 0 22px; }
+
+  /* Section labels */
+  .label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .15em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 8px;
+  }
+  h2 {
+    font-size: 28px; letter-spacing: -.015em;
+    margin: 56px 0 18px;
+  }
+  .sub { color: var(--muted); margin: -8px 0 16px; max-width: 720px; font-size: 15px; }
+
+  /* Cards */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 8px 24px rgba(0,0,0,.4);
+  }
+  .grid-2 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+  .grid-3 { display: grid; gap: 16px; grid-template-columns: 1fr 1fr 1fr; }
+  .grid-4 { display: grid; gap: 14px; grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 920px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  }
+
+  /* Pills */
+  .tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+    letter-spacing: .08em; padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--muted);
+  }
+  .tag.ok { color: var(--ok); border-color: rgba(61,220,151,.4); }
+  .tag.accent { color: var(--accent-2); border-color: rgba(76,201,240,.45); }
+  .tag.purple { color: var(--purple); border-color: rgba(192,132,252,.4); }
+  .pillbar { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  /* Mermaid container */
+  .diagram {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 12px 12px;
+    overflow-x: auto;
+  }
+  .mermaid {
+    background: transparent !important;
+    font-family: var(--mono);
+    text-align: center;
+  }
+  .diagram + .caption {
+    color: var(--muted); font-size: 13px; text-align: center; margin: 10px 0 0;
+  }
+
+  /* Stat tiles */
+  .stat {
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px;
+  }
+  .stat .num { font-size: 28px; font-weight: 600; letter-spacing: -.02em; }
+  .stat .lbl { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .stat .num.purple { color: var(--purple); }
+  .stat .num.accent { color: var(--accent-2); }
+  .stat .num.ok { color: var(--ok); }
+  .stat .num.warn { color: var(--warn); }
+
+  /* Status legend */
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; }
+  .legend li {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 12px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 5px 10px;
+  }
+  .legend .dot { width: 9px; height: 9px; border-radius: 50%; }
+
+  /* Three-up "step" cards */
+  .step-card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; }
+  .step-card .num { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+  .step-card h4 { font-size: 16px; margin: 6px 0 4px; letter-spacing: -.005em; }
+  .step-card p { color: var(--muted); font-size: 14px; margin: 0; }
+
+  /* Plain-language "what this is" tiles */
+  .who {
+    background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+    border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px;
+    display: grid; grid-template-columns: 36px 1fr; gap: 14px; align-items: start;
+  }
+  .who .ico {
+    width: 36px; height: 36px; border-radius: 9px;
+    display: grid; place-items: center; font-size: 18px;
+    background: rgba(124,92,255,.12); color: var(--accent);
+  }
+  .who h4 { font-size: 15px; margin: 2px 0 4px; letter-spacing: -.005em; }
+  .who p { color: var(--muted); font-size: 14px; margin: 0; }
+
+  code { font-family: var(--mono); font-size: .92em; background: var(--code); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border); color: #d3d8e3; }
+
+  hr.soft { border: 0; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  footer.foot { color: var(--dim); text-align: center; margin-top: 56px; font-size: 12.5px; }
+
+  /* Per-table reference cards */
+  .tref {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .tref header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: rgba(255,255,255,.02);
+  }
+  .tref header .tname {
+    font-family: var(--mono); font-size: 15px; color: var(--text);
+  }
+  .tref header .tcat {
+    font-family: var(--mono); font-size: 10.5px;
+    letter-spacing: .1em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border);
+  }
+  .tref header .tcat.author { color: #c8b8ff; border-color: rgba(124,92,255,.45); background: rgba(124,92,255,.08); }
+  .tref header .tcat.send   { color: var(--accent-2); border-color: rgba(76,201,240,.45); background: rgba(76,201,240,.08); }
+  .tref header .tcat.rep    { color: var(--warn); border-color: rgba(242,201,76,.45); background: rgba(242,201,76,.08); }
+  .tref header .tcat.oauth  { color: var(--purple); border-color: rgba(192,132,252,.45); background: rgba(192,132,252,.08); }
+  .tref header .tcat.import { color: var(--ok); border-color: rgba(61,220,151,.45); background: rgba(61,220,151,.08); }
+  .tref header .tdesc {
+    color: var(--muted); font-size: 13.5px; margin-left: auto; flex: 1 1 100%;
+  }
+  .tref .cols { padding: 6px 0; }
+  .tref .row {
+    display: grid; grid-template-columns: 240px 1fr;
+    gap: 16px; padding: 7px 20px;
+    border-bottom: 1px dashed transparent;
+  }
+  .tref .row + .row { border-top: 1px dashed rgba(255,255,255,.04); }
+  .tref .col {
+    font-family: var(--mono); font-size: 12.5px;
+    color: var(--text); line-height: 1.7;
+  }
+  .tref .col .ty {
+    color: var(--dim); font-size: 11.5px; margin-left: 6px;
+  }
+  .tref .col .badge {
+    display: inline-block; padding: 0 5px; border-radius: 3px;
+    font-size: 9.5px; letter-spacing: .08em; margin-right: 6px;
+    vertical-align: 2px; font-weight: 600;
+  }
+  .tref .col .badge.pk { background: rgba(76,201,240,.18); color: var(--accent-2); }
+  .tref .col .badge.fk { background: rgba(124,92,255,.18); color: #c8b8ff; }
+  .tref .col .badge.uq { background: rgba(61,220,151,.16); color: var(--ok); }
+  .tref .col .badge.gen{ background: rgba(192,132,252,.16); color: var(--purple); }
+  .tref .desc { color: var(--muted); font-size: 13.5px; line-height: 1.55; }
+  @media (max-width: 720px) {
+    .tref .row { grid-template-columns: 1fr; gap: 2px; padding: 8px 16px; }
+  }
+
+  /* Mermaid override - dark theme touches via CSS vars */
+  .mermaid .er.entityBox { fill: #1c2230 !important; stroke: #3a4358 !important; }
+  .mermaid .er.attributeBoxOdd, .mermaid .er.attributeBoxEven { fill: #161a23 !important; stroke: #2a3142 !important; }
+  .mermaid .er.relationshipLine { stroke: #7c5cff !important; }
+  .mermaid .er.entityLabel { fill: #e7ecf3 !important; }
+</style>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="label">Recruiter outreach pipeline · how it works</p>
+    <h1>Mino's solution, visualized</h1>
+    <p class="lede">
+      Recruiters send outreach from their <em>own</em> Gmail mailbox.
+      Postgres decides who sends what, when. The worker just delivers.
+    </p>
+    <div class="pillbar">
+      <span class="tag accent">12 tables</span>
+      <span class="tag purple">OAuth in Vault</span>
+      <span class="tag ok">RLS everywhere</span>
+      <span class="tag">5-min cron</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- =================== Big picture =================== -->
+  <h2>The big picture</h2>
+  <p class="sub">Five actors, one loop. Everything else is detail.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart LR
+  classDef person fill:#1c2230,stroke:#7c5cff,color:#e7ecf3,stroke-width:1.5px
+  classDef db fill:#1c2230,stroke:#4cc9f0,color:#e7ecf3,stroke-width:1.5px
+  classDef worker fill:#1c2230,stroke:#3ddc97,color:#e7ecf3,stroke-width:1.5px
+  classDef gmail fill:#1c2230,stroke:#f2c94c,color:#e7ecf3,stroke-width:1.5px
+  classDef inbox fill:#1c2230,stroke:#c084fc,color:#e7ecf3,stroke-width:1.5px
+
+  A["Recruiter"]:::person
+  DB[("Postgres &mdash; the brain")]:::db
+  W["Cron worker<br/>every 5 min"]:::worker
+  G["Gmail API<br/>recruiter's mailbox"]:::gmail
+  R["Candidate inbox"]:::inbox
+
+  A -->|"1. connect mailbox<br/>2. build campaign"| DB
+  W -->|"3. who is next?"| DB
+  DB -->|"4. here, take this<br/>lease token"| W
+  W -->|"5. send email"| G
+  G -->|"6. delivered"| R
+  W -->|"7. receipt"| DB
+    </pre>
+  </div>
+  <p class="caption">Every numbered step is auditable in a dedicated table.</p>
+
+  <!-- =================== Who's who =================== -->
+  <h2>What each piece does</h2>
+
+  <div class="grid-2" style="margin-top:14px;">
+    <div class="who">
+      <div class="ico">📝</div>
+      <div>
+        <h4>The campaign</h4>
+        <p>Subject line, preview text, HTML body, send time, and the recruiter it is sent as. Stored in <code>campaigns</code>.</p>
+      </div>
+    </div>
+    <div class="who">
+      <div class="ico">👥</div>
+      <div>
+        <h4>The candidate list</h4>
+        <p>Candidates imported from your ATS, sourcing tool or a CSV. Deduped by email, so one person is one row.</p>
+      </div>
+    </div>
+    <div class="who">
+      <div class="ico">🔗</div>
+      <div>
+        <h4>The recipient list</h4>
+        <p>One row per (campaign, candidate). Tracks where each candidate is in the journey &mdash; pending → sent.</p>
+      </div>
+    </div>
+    <div class="who">
+      <div class="ico">🔐</div>
+      <div>
+        <h4>The mailbox keys</h4>
+        <p>Each recruiter's Google OAuth tokens, encrypted in Supabase Vault. The database only stores the locker number, not the key.</p>
+      </div>
+    </div>
+    <div class="who">
+      <div class="ico">🌡️</div>
+      <div>
+        <h4>The reputation tracker</h4>
+        <p>Brand-new mailboxes are throttled and loosen as they send. Recruiters on the same company domain share one budget, so one recruiter can't flag the whole team's domain.</p>
+      </div>
+    </div>
+    <div class="who">
+      <div class="ico">📒</div>
+      <div>
+        <h4>The audit ledger</h4>
+        <p>Every send attempt &mdash; successful, failed, or lost &mdash; has a permanent row. Nothing is ever silently dropped.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== Relationships =================== -->
+  <h2>How the tables relate</h2>
+  <p class="sub">The dotted lines are Vault secrets. Everything else is a normal foreign key.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+flowchart TB
+  classDef author fill:#241b3d,stroke:#7c5cff,color:#fff,stroke-width:1.5px
+  classDef send fill:#0f2a3a,stroke:#4cc9f0,color:#fff,stroke-width:1.5px
+  classDef rep fill:#3a2a14,stroke:#f2c94c,color:#fff,stroke-width:1.5px
+  classDef oauth fill:#2a1b3a,stroke:#c084fc,color:#fff,stroke-width:1.5px
+  classDef vault fill:#10141c,stroke:#c084fc,color:#c084fc,stroke-width:1.2px,stroke-dasharray:5 4
+
+  subgraph AUTHORING [Authoring]
+    SN["senders<br/>one per recruiter"]:::author
+    C["campaigns"]:::author
+    CT["contacts<br/>candidates"]:::author
+    CC["campaign_contacts"]:::author
+  end
+
+  subgraph SEND [Send admission and ledger]
+    TL["send_tokens<br/>every issued lease, permanent"]:::send
+    A["send_attempts<br/>one row per attempt"]:::send
+  end
+
+  subgraph REP [Reputation]
+    S["sender_reputation_scopes<br/>per mailbox or company domain"]:::rep
+  end
+
+  subgraph AUTH [OAuth]
+    SPC["sender_credentials"]:::oauth
+    V[("Supabase Vault<br/>token values")]:::vault
+  end
+
+  SN -->|sends| C
+  C -->|has many| CC
+  CT -->|appears in| CC
+
+  CC -->|leased = one token| TL
+  TL -->|one attempt per token| A
+  CC -->|one attempt per send| A
+
+  TL -->|attributed to| S
+
+  SN -->|connected mailbox| SPC
+  SPC -.->|access and refresh<br/>secret ids| V
+  SPC -->|provider_email<br/>becomes scope key| S
+    </pre>
+  </div>
+
+  <!-- =================== State machine =================== -->
+  <h2>What happens to a single recipient</h2>
+  <p class="sub">Each candidate in a campaign moves through these states. The lease token is what stops anyone from sending twice.</p>
+
+  <ul class="legend" style="margin-bottom:14px;">
+    <li><span class="dot" style="background:#98a1b3"></span>pending</li>
+    <li><span class="dot" style="background:#4cc9f0"></span>leased <span style="color:var(--muted)">(in flight)</span></li>
+    <li><span class="dot" style="background:#3ddc97"></span>sent</li>
+    <li><span class="dot" style="background:#f2c94c"></span>retry_scheduled</li>
+    <li><span class="dot" style="background:#ff6b6b"></span>failed</li>
+    <li><span class="dot" style="background:#c084fc"></span>send_unknown</li>
+  </ul>
+
+  <div class="diagram">
+    <pre class="mermaid">
+stateDiagram-v2
+  direction LR
+  [*] --> pending : added to campaign
+
+  pending --> leased : worker claims it
+  retry_scheduled --> leased : retry time reached
+
+  leased --> sent : Gmail returned OK
+  leased --> failed : permanent error, or 5th attempt
+  leased --> retry_scheduled : transient error
+  leased --> send_unknown : lease expired or unclear
+  send_unknown --> sent : late confirmation arrives
+  send_unknown --> failed : late failure arrives
+
+  pending --> canceled : unsubscribed or campaign canceled
+
+  sent --> [*]
+  failed --> [*]
+  canceled --> [*]
+    </pre>
+  </div>
+
+  <!-- =================== Lifecycle sequence =================== -->
+  <h2>One trip through the pipeline</h2>
+  <p class="sub">A single candidate, from "added" to "delivered" &mdash; who talks to whom.</p>
+
+  <div class="diagram">
+    <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant U as Recruiter
+  participant DB as Postgres
+  participant W as Cron worker
+  participant V as Vault
+  participant G as Gmail
+  participant P as Candidate inbox
+
+  U->>DB: Create campaign + attach candidates
+  U->>DB: dispatcher_campaign_go_live()
+  Note over DB: Drops unsubscribed candidates,<br/>checks at least 1 recipient
+
+  loop every 5 min
+    W->>DB: dispatcher_mark_expired_sends_unknown()
+    W->>DB: dispatcher_claim_next_send_token()
+    DB-->>W: Lease token + full email payload
+    W->>V: Read OAuth tokens (via SECURITY DEFINER)
+    V-->>W: Decrypted access token
+    W->>G: users.messages.send
+    G-->>W: 200 OK + messageId
+
+    alt success
+      W->>DB: dispatcher_receipt_sent(lease, messageId)
+      Note over DB: status → sent
+    else transient error
+      W->>DB: dispatcher_receipt_failed(lease, retry_after)
+      Note over DB: status → retry_scheduled
+    else timeout or 5xx
+      W->>DB: dispatcher_receipt_unknown(lease)
+      Note over DB: status → send_unknown
+    end
+  end
+
+  G->>P: Email delivered
+  Note over DB: Trigger: no rows left in flight → campaign completed
+    </pre>
+  </div>
+
+  <!-- =================== Reputation warmup =================== -->
+  <h2>Why brand-new senders are throttled</h2>
+  <p class="sub">Gmail penalises mailboxes that suddenly start blasting. The policy ramps up gradually so reputation builds, not breaks.</p>
+
+  <div class="grid-4" style="margin-top:14px;">
+    <div class="stat">
+      <div class="num warn">30</div>
+      <div class="lbl">First 24 hours<br/><span style="color:var(--dim)">~ 1 every 10 min</span></div>
+    </div>
+    <div class="stat">
+      <div class="num warn">60</div>
+      <div class="lbl">Day 1–3<br/><span style="color:var(--dim)">~ 1 every 5 min</span></div>
+    </div>
+    <div class="stat">
+      <div class="num accent">150</div>
+      <div class="lbl">Day 3–7<br/><span style="color:var(--dim)">~ 1 every 4 min</span></div>
+    </div>
+    <div class="stat">
+      <div class="num ok">480</div>
+      <div class="lbl">After 2 weeks ("warmed")<br/><span style="color:var(--dim)">~ 1 every 3 min</span></div>
+    </div>
+  </div>
+  <p class="caption" style="margin-top:14px;">Numbers are the rolling 24-hour cap per reputation scope. Recruiters on the same company domain share one budget; a recruiter on a personal gmail.com mailbox has their own.</p>
+
+  <div class="diagram" style="margin-top:18px;">
+    <pre class="mermaid">
+flowchart LR
+  classDef state fill:#1c2230,stroke:#3a4358,color:#e7ecf3
+  classDef warming fill:#3a2a14,stroke:#f2c94c,color:#fff
+  classDef ok fill:#0f2a1d,stroke:#3ddc97,color:#fff
+  classDef paused fill:#3a1414,stroke:#ff6b6b,color:#fff
+
+  N["Mailbox connected"]:::state
+  W1["Warming<br/>0 to 24h"]:::warming
+  W2["Warming<br/>24 to 72h"]:::warming
+  W3["Warming<br/>72 to 168h"]:::warming
+  W4["Warming<br/>168 to 336h"]:::warming
+  OK["Warmed<br/>full pace"]:::ok
+  SP["Safety paused<br/>Gmail flagged us"]:::paused
+
+  N --> W1 --> W2 --> W3 --> W4 --> OK
+  W1 -.->|abuse signal| SP
+  W2 -.-> SP
+  W3 -.-> SP
+  W4 -.-> SP
+  OK -.-> SP
+    </pre>
+  </div>
+
+  <!-- =================== Three guarantees =================== -->
+  <h2>Three guarantees the database makes</h2>
+
+  <div class="grid-3" style="margin-top:14px;">
+    <div class="step-card">
+      <div class="num">01</div>
+      <h4>🔒 No double-sends</h4>
+      <p>The lease token is unique per attempt. A receipt only counts if it matches the live lease &mdash; late or duplicate worker callbacks just bounce off. A candidate never gets the same email twice.</p>
+    </div>
+    <div class="step-card">
+      <div class="num">02</div>
+      <h4>🌡️ No mailbox abuse</h4>
+      <p>Postgres won't issue a token if the scope's 24-hour cap is hit or the recruiter's last send was too recent. Pacing is enforced centrally, across every worker and every recruiter on the team.</p>
+    </div>
+    <div class="step-card">
+      <div class="num">03</div>
+      <h4>📒 Nothing gets lost</h4>
+      <p>Worker crashes? Lease expires, candidate drops to <em>send_unknown</em>. A late receipt can still resolve it. Worst case: an operator sees it in the <code>unknown_sends</code> view.</p>
+    </div>
+  </div>
+
+  <!-- =================== Per-table reference =================== -->
+  <h2>What each table does</h2>
+  <p class="sub">The gist. What it tracks, why it exists.</p>
+
+  <p class="label" style="margin-top:22px;">Authoring &mdash; what to send, and to whom</p>
+
+  <section class="tref">
+    <header>
+      <span class="tname">senders</span>
+      <span class="tcat author">authoring</span>
+      <span class="tdesc">One row per recruiter who sends outreach.</span>
+    </header>
+    <div class="cols">
+      <div class="row"><div class="col">email &amp; display name</div><div class="desc">Who the candidate sees in the From line.</div></div>
+      <div class="row"><div class="col">disabled_at</div><div class="desc">Set when a recruiter leaves the team; their campaigns stop being claimed.</div></div>
+    </div>
+  </section>
+
+  <section class="tref">
+    <header>
+      <span class="tname">campaigns</span>
+      <span class="tcat author">authoring</span>
+      <span class="tdesc">The email itself. Subject, body, which recruiter sends it, when it should go out.</span>
+    </header>
+    <div class="cols">
+      <div class="row"><div class="col">name</div><div class="desc">Internal label. Not shown to candidates.</div></div>
+      <div class="row"><div class="col">subject &amp; preview text</div><div class="desc">What candidates see in their inbox. <code>{{first_name}}</code> is filled per candidate.</div></div>
+      <div class="row"><div class="col">body</div><div class="desc">The actual email content, with <code>{{first_name}}</code> and <code>{{unsubscribe_url}}</code>.</div></div>
+      <div class="row"><div class="col">status</div><div class="desc">Draft → live → completed, with paused and canceled on the side. Only "live" campaigns are picked up by the worker.</div></div>
+      <div class="row"><div class="col">send_at</div><div class="desc">When sending is allowed to start. Lets you schedule.</div></div>
+      <div class="row"><div class="col">sender_id</div><div class="desc">The recruiter whose Gmail will be used to send it.</div></div>
+    </div>
+  </section>
+
+  <section class="tref">
+    <header>
+      <span class="tname">contacts</span>
+      <span class="tcat author">authoring</span>
+      <span class="tdesc">The candidate book, filled from your ATS, sourcing tool or CSV imports.</span>
+    </header>
+    <div class="cols">
+      <div class="row"><div class="col">email</div><div class="desc">The address. Deduped by normalized email &mdash; one row per candidate.</div></div>
+      <div class="row"><div class="col">first &amp; last name</div><div class="desc">Used to personalise the email.</div></div>
+      <div class="row"><div class="col">metadata</div><div class="desc">Anything else you want to keep, like the ATS id or the role they were sourced for.</div></div>
+    </div>
+  </section>
+
+  <section class="tref">
+    <header>
+      <span class="tname">campaign_contacts</span>
+      <span class="tcat author">authoring</span>
+      <span class="tdesc">Which candidates are getting which campaign. One row per (campaign, candidate). Each row tracks its own send journey.</span>
+    </header>
+    <div class="cols">
+      <div class="row"><div class="col">status</div><div class="desc">Where this candidate is right now: pending, in flight, sent, failed, retry pending, unknown, or canceled.</div></div>
+      <div class="row"><div class="col">send_after / next_retry_at</div><div class="desc">"Don't try this one again until …" &mdash; for scheduling and retries.</div></div>
+      <div class="row"><div class="col">attempt_count</div><div class="desc">How many tries so far. The fifth retryable failure is final.</div></div>
+      <div class="row"><div class="col">lease info</div><div class="desc">Marks a candidate as "currently being sent by a worker, hands off". Prevents double-sends.</div></div>
+      <div class="row"><div class="col">sent_at &amp; message id</div><div class="desc">Proof of delivery once Gmail confirms.</div></div>
+      <div class="row"><div class="col">last_error</div><div class="desc">What went wrong on the last attempt (if anything).</div></div>
+    </div>
+  </section>
+
+  <section class="tref">
+    <header>
+      <span class="tname">suppressions &amp; unsubscribe_tokens</span>
+      <span class="tcat author">authoring</span>
+      <span class="tdesc">Candidates who opted out, and the stable per-address token behind every unsubscribe link.</span>
+    </header>
+    <div class="cols">
+      <div class="row"><div class="col">normalized_email</div><div class="desc">Opt-outs are keyed by address, so they survive deleting and re-importing a candidate.</div></div>
+      <div class="row"><div class="col">suppressed_via</div><div class="desc">Link click, one-click header from the mail client, or a recruiter action.</div></div>
+    </div>
+  </section>
+
+  <p class="label" style="margin-top:30px;">Send admission &amp; ledger &mdash; who fired, when</p>
+
+  <section class="tref">
+    <header>
+      <span class="tname">send_tokens</span>
+      <span class="tcat send">audit</span>
+      <span class="tdesc">A permanent record of every "go" signal the database has ever given. Never updated. The pacing math reads from here.</span>
+    </header>
+    <div class="cols">
+      <div class="row"><div class="col">who &amp; when</div><div class="desc">Which recruiter's mailbox was used, at what moment.</div></div>
+      <div class="row"><div class="col">recipient</div><div class="desc">Which campaign_contact got the green light.</div></div>
+      <div class="row"><div class="col">mailbox snapshot</div><div class="desc">The actual Gmail address in use at the time &mdash; preserved even if the recruiter later reconnects a different one.</div></div>
+    </div>
+  </section>
+
+  <section class="tref">
+    <header>
+      <span class="tname">send_attempts</span>
+      <span class="tcat send">ledger</span>
+      <span class="tdesc">One row per attempt to actually deliver. Starts as "started", ends as "sent", "failed", "retry_scheduled" or "send_unknown".</span>
+    </header>
+    <div class="cols">
+      <div class="row"><div class="col">attempt number</div><div class="desc">1st try, 2nd try, etc., for this candidate.</div></div>
+      <div class="row"><div class="col">status</div><div class="desc">started → sent / failed / retry / unknown.</div></div>
+      <div class="row"><div class="col">timing</div><div class="desc">When the attempt began and when it finished.</div></div>
+      <div class="row"><div class="col">outcome details</div><div class="desc">Gmail's message id on success, or a scrubbed error and failure category on failure.</div></div>
+    </div>
+  </section>
+
+  <p class="label" style="margin-top:30px;">OAuth &mdash; the mailbox keys</p>
+
+  <section class="tref">
+    <header>
+      <span class="tname">sender_credentials</span>
+      <span class="tcat oauth">oauth</span>
+      <span class="tdesc">Each recruiter's connected mailbox. The actual tokens live in Supabase Vault &mdash; this table just points to them.</span>
+    </header>
+    <div class="cols">
+      <div class="row"><div class="col">provider &amp; email</div><div class="desc">Today: always Google. Plus the actual Gmail address that was connected.</div></div>
+      <div class="row"><div class="col">vault pointers</div><div class="desc">Locker numbers for the access &amp; refresh tokens. The tokens themselves never sit on this row.</div></div>
+      <div class="row"><div class="col">expiry</div><div class="desc">When the access token needs refreshing.</div></div>
+      <div class="row"><div class="col">status</div><div class="desc">Active, needs-to-reconnect, or disabled. Losing "active" pauses that recruiter's live campaigns.</div></div>
+      <div class="row"><div class="col">last error</div><div class="desc">Why the connection broke (with any token values scrubbed out).</div></div>
+    </div>
+  </section>
+
+  <p class="label" style="margin-top:30px;">Reputation &mdash; the warmup tracker</p>
+
+  <section class="tref">
+    <header>
+      <span class="tname">sender_reputation_scopes</span>
+      <span class="tcat rep">reputation</span>
+      <span class="tdesc">One row per personal mailbox or per company domain. Knows how new it is and whether it's healthy enough to keep sending.</span>
+    </header>
+    <div class="cols">
+      <div class="row"><div class="col">identity</div><div class="desc">A personal mailbox (gmail.com, outlook.com, …) or a whole company domain shared by the recruiting team.</div></div>
+      <div class="row"><div class="col">state</div><div class="desc">Warming (new), cooling down (temporary brake), or safety paused (Gmail flagged something).</div></div>
+      <div class="row"><div class="col">warmup_started_at</div><div class="desc">When this scope actually sent its first email. The whole tier table flows from this timestamp.</div></div>
+      <div class="row"><div class="col">pause reason</div><div class="desc">If paused, why &mdash; visible to an operator.</div></div>
+    </div>
+  </section>
+
+  <section class="tref">
+    <header>
+      <span class="tname">sender_reputation_scope_audit</span>
+      <span class="tcat rep">audit</span>
+      <span class="tdesc">Logs every time a human touched a reputation scope (e.g. cleared a safety pause).</span>
+    </header>
+    <div class="cols">
+      <div class="row"><div class="col">action</div><div class="desc">What they did.</div></div>
+      <div class="row"><div class="col">actor</div><div class="desc">Who did it.</div></div>
+      <div class="row"><div class="col">before / after</div><div class="desc">Snapshot of the change.</div></div>
+    </div>
+  </section>
+
+  <section class="tref">
+    <header>
+      <span class="tname">scope_deferral_rollups</span>
+      <span class="tcat rep">counters</span>
+      <span class="tdesc">"How often did the dispatcher skip a candidate, and why?" Aggregated per worker cycle, then drained into the worker's logs.</span>
+    </header>
+    <div class="cols">
+      <div class="row"><div class="col">reason</div><div class="desc">Daily cap hit, cooldown active, sender too recent, safety paused.</div></div>
+      <div class="row"><div class="col">count</div><div class="desc">How many skips of that kind this cycle.</div></div>
+    </div>
+  </section>
+
+  <!-- =================== Where things live =================== -->
+  <h2>If you want to dive in</h2>
+  <p class="sub">All the SQL is in 5 migrations. All the worker code is in <code>src/</code>.</p>
+
+  <div class="grid-2" style="margin-top:14px;">
+    <div class="card">
+      <p class="label" style="margin:0 0 10px;">Database</p>
+      <ul style="margin:0; padding-left:18px; color:var(--muted); font-size:14px;">
+        <li><code>20260101000001</code> · tables, scopes, ledger, RLS</li>
+        <li><code>20260101000002</code> · recruiter mailbox credentials (Vault)</li>
+        <li><code>20260101000003</code> · token admission + warmup</li>
+        <li><code>20260101000004</code> · receipt RPCs + unknowns</li>
+        <li><code>20260101000005</code> · campaign lifecycle + unsubscribe</li>
+      </ul>
+    </div>
+    <div class="card">
+      <p class="label" style="margin:0 0 10px;">Worker</p>
+      <ul style="margin:0; padding-left:18px; color:var(--muted); font-size:14px;">
+        <li><code>src/worker.ts</code> · the cycle loop + lease-expiry sweep</li>
+        <li><code>src/provider/gmail.ts</code> · Gmail adapter + token refresh</li>
+        <li><code>api/cron/email-dispatcher.ts</code> · 5-min cron entry</li>
+        <li><code>api/unsubscribe.ts</code> · candidate unsubscribe endpoint</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer class="foot">Built from <code>supabase/migrations/20260101000001…05</code> + <code>src/</code></footer>
+
+</main>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    securityLevel: 'loose',
+    theme: 'base',
+    themeVariables: {
+      darkMode: true,
+      background: '#161a23',
+      primaryColor: '#1c2230',
+      primaryTextColor: '#e7ecf3',
+      primaryBorderColor: '#3a4358',
+      lineColor: '#5d6884',
+      secondaryColor: '#241b3d',
+      tertiaryColor: '#0f2a3a',
+      fontFamily: 'ui-monospace, "JetBrains Mono", monospace',
+      fontSize: '14px',
+      noteBkgColor: '#241b3d',
+      noteTextColor: '#e7ecf3',
+      noteBorderColor: '#7c5cff',
+      actorBkg: '#1c2230',
+      actorBorder: '#7c5cff',
+      actorTextColor: '#e7ecf3',
+      signalColor: '#cbd2e0',
+      signalTextColor: '#e7ecf3',
+      labelBoxBkgColor: '#1c2230',
+      labelBoxBorderColor: '#3a4358',
+      labelTextColor: '#e7ecf3',
+      sequenceNumberColor: '#0b0d12'
+    },
+    flowchart: { curve: 'basis', padding: 16, htmlLabels: true, useMaxWidth: true },
+    sequence: { mirrorActors: false, messageAlign: 'center', boxMargin: 8 },
+    state: { padding: 16 }
+  });
+</script>
+</body>
+</html>

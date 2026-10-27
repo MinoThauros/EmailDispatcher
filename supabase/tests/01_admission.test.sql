@@ -4,7 +4,7 @@ BEGIN;
 \ir _helpers.psql
 SELECT plan(19);
 
-SELECT pg_temp.new_sender('alice@acme.test') AS alice \gset
+SELECT pg_temp.new_sender('maya@acme.test') AS alice \gset
 SELECT pg_temp.new_campaign(:'alice', 32, 'alice-r') AS alice_campaign \gset
 
 SELECT is(
@@ -83,26 +83,26 @@ SELECT is(
   'the cap reopens 24h after the oldest token in the window'
 );
 
--- A second sender on the same custom domain shares the scope, so the cap
--- applies to it too. A Gmail sender is its own scope and is unaffected.
-SELECT pg_temp.new_sender('bob@acme.test') AS bob \gset
+-- A second recruiter on the team's company domain shares the scope, so the cap
+-- applies to them too. A recruiter on a personal Gmail is their own scope.
+SELECT pg_temp.new_sender('jordan@acme.test') AS bob \gset
 SELECT pg_temp.new_campaign(:'bob', 2, 'bob-r') AS bob_campaign \gset
 SELECT public.dispatcher_campaign_go_live(:'bob_campaign', now());
 
 SELECT is(
   (SELECT state FROM pg_temp.claim(now() + 30 * interval '600 seconds')),
   'no_work',
-  'senders on one custom domain share its reputation cap'
+  'recruiters on one company domain share its reputation cap'
 );
 
-SELECT pg_temp.new_sender('carol@gmail.com') AS carol \gset
+SELECT pg_temp.new_sender('sam.recruits@gmail.com') AS carol \gset
 SELECT pg_temp.new_campaign(:'carol', 2, 'carol-r') AS carol_campaign \gset
 SELECT public.dispatcher_campaign_go_live(:'carol_campaign', now());
 
 SELECT is(
   (SELECT state FROM pg_temp.claim(now() + 30 * interval '600 seconds')),
   'token_issued',
-  'a public-mailbox sender has its own scope'
+  'a recruiter on a personal mailbox has their own scope'
 );
 
 -- ── Scope keys ──

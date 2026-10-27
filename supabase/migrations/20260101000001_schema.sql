@@ -27,9 +27,9 @@ AS $$
 $$;
 
 -- ── Senders ────────────────────────────────────────────────────────────────
--- A sender is the identity a campaign is sent as. Its connected provider
--- mailbox lives in sender_credentials; the reputation scope is derived from
--- that mailbox, not from this row's email.
+-- A sender is a recruiter: the identity a campaign is sent as. The recruiter's
+-- connected mailbox lives in sender_credentials; the reputation scope is
+-- derived from that mailbox, not from this row's email.
 
 CREATE TABLE public.senders (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -44,7 +44,7 @@ CREATE TRIGGER trg_senders_updated_at
   BEFORE UPDATE ON public.senders
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
--- ── Contacts and campaigns ─────────────────────────────────────────────────
+-- ── Candidates (contacts) and campaigns ─────────────────────────────────────────────────
 
 CREATE TABLE public.contacts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -102,8 +102,8 @@ CREATE TRIGGER trg_campaigns_updated_at
   BEFORE UPDATE ON public.campaigns
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
--- campaign_contacts is both explicit campaign membership and the recipient
--- queue item. One row is one email to one contact; attempts are retries of
+-- campaign_contacts is both explicit campaign membership and the queue item.
+-- One row is one email to one candidate; attempts are retries of
 -- that same email.
 CREATE TABLE public.campaign_contacts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -249,9 +249,10 @@ CREATE TRIGGER trg_sender_credentials_updated_at
 
 -- ── Sender reputation (domain protection) ──────────────────────────────────
 -- A scope is what mailbox providers judge as one sender: the individual
--- mailbox for consumer domains (gmail.com, outlook.com, ...), or the whole
--- domain for custom domains. Several senders on one custom domain share one
--- scope, so one noisy sender cannot burn the domain for the others.
+-- mailbox for consumer domains (a recruiter's personal gmail.com, outlook.com,
+-- ...), or the whole domain for company domains. Every recruiter on a team's
+-- company domain shares one scope, so one recruiter cannot burn the domain
+-- for the rest of the team.
 
 CREATE TABLE public.sender_reputation_scopes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

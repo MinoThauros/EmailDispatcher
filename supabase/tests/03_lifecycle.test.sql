@@ -4,7 +4,7 @@ BEGIN;
 \ir _helpers.psql
 SELECT plan(17);
 
-SELECT pg_temp.new_sender('team@acme.test') AS sender \gset
+SELECT pg_temp.new_sender('jordan@acme.test') AS sender \gset
 SELECT pg_temp.new_campaign(:'sender', 4) AS campaign \gset
 SELECT public.dispatcher_campaign_go_live(:'campaign', now());
 
@@ -46,7 +46,7 @@ SELECT lives_ok(
   'an in-flight lease finishes after the pause'
 );
 
-SELECT public.dispatcher_upsert_sender_credentials(:'sender', 'google', 'team@acme.test', 'new-access-token', NULL);
+SELECT public.dispatcher_upsert_sender_credentials(:'sender', 'google', 'jordan@acme.test', 'new-access-token', NULL);
 SELECT lives_ok(
   format('SELECT public.dispatcher_resume_campaign(%L)', :'campaign'),
   'resume works once the mailbox is reconnected'
